@@ -95,10 +95,10 @@ ${dataTableExample(example3)}
       implicit def caseDouble = at[Double](d => f"$d%8.5f")
     }
 
-    "Decimal Digits" || "Fractional Digits" || "Double" |
+    "Decimal Digits" || "Fractional Digits" || "Double" |>
                  "0" !! "0"                 !!   0D     |
                 "12" !! "34"                !!  12.34D  |
-                "-3" !! "141"               !!  -3.141D |> {
+                "-3" !! "141"               !!  -3.141D | {
       evaluate
     }
   }

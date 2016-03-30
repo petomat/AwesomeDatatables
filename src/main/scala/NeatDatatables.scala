@@ -116,9 +116,7 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
   trait ProperRowLength[R <: HList, N <: Nat]
   object ProperRowLength {
     // scalastyle:off null Reason: Only compile time never-used implicit instance
-    implicit def default[R <: HList, N <: Nat](
-      implicit l: Length.Aux[R, N]
-    ): ProperRowLength[R, N] = null
+    implicit def default[R <: HList, N <: Nat](implicit l: Length.Aux[R, N]): ProperRowLength[R, N] = null
     // scalastyle: on null
   }
 
@@ -127,9 +125,8 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
   implicit def toHeading(s: String): Heading[_1] = Heading(Sized[Vector](s))
   case class Heading[N <: Nat](columns: Sized[Vector[String], N]) {
     def ||(s: String): Heading[Succ[N]] = Heading(columns :+ s)
-    def |[R <: HList](row: Row[R])(
-      implicit l: ProperRowLength[R, N]
-    ): Table[R] = Table(this, Vector(row))
+    def | [R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R] = Table(this, Vector(row))
+    def |>[R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R] = Table(this, Vector(row))
   }
 
   /** Type class witnessing the evaluation function passed to |> at the end of a table fits the row type */
@@ -154,9 +151,12 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
   case class Table[R <: HList](heading: Heading[_ <: Nat], rows: Vector[Row[R]]) {
     def titles: Seq[String] = heading.columns.to[Vector]
     def |(row: Row[R]): Table[R] = Table(heading, rows :+ row)
-    def |>[F](f: F)(implicit ptf: ProperTestFunction[R, F], rowToString: RowToString[R]): DecoratedResult[DataTable] = {
+    def | [F](f: F)(implicit ptf: ProperTestFunction[R, F], rowToString: RowToString[R]): DecoratedResult[DataTable] = {
       val prodFct: R => ptf.Out = ptf.fnTnProd(f)
       Table.collect(titles, rows map { case Row(cols) => rowToString(cols) -> prodFct(cols) })(ptf.asResult)
+    }
+    def |>[F](f: F)(implicit ptf: ProperTestFunction[R, F], rowToString: RowToString[R]): DecoratedResult[DataTable] = {
+      |(f)
     }
   }
 
