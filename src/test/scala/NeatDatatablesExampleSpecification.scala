@@ -1,5 +1,5 @@
-import org.specs2.Specification
 import scala.util.Try
+import org.specs2.Specification
 
 /*
  * Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
@@ -33,20 +33,34 @@ import scala.util.Try
  * to @alexey_r for the Parser matchers
  */
 
-class AwesomeDatatablesExampleSpecification extends Specification with AwesomeDatatables {
+// scalastyle:off
+// Reason: unit test
+
+// formatter:off
+
+class NeatDatatablesExampleSpecification extends Specification with NeatDatatables {
 
   def is = s2"""
-Awesome Datatables
+Neat Datatables
   Example 1
-${dataTableExample(awesomeDatatable1)}
+${dataTableExample(example1)}
   Example 2
-${dataTableExample(awesomeDatatable2)}
+${dataTableExample(example2)}
   Example 3
-${dataTableExample(awesomeDatatable3)}
+${dataTableExample(example3)}
 """
 
+  val evaluate = {
+    (decimal: String, fractional: String, fpn: Double) =>
+      (for {
+        d <- Try(decimal.toInt).toOption
+        f <- Try(fractional.toInt).toOption
+        if f >= 0D
+      } yield {
+        d + (d.signum * f / math.pow(10, fractional.length))
+      }) must beSome(fpn)
+  }
 
-  // Note: Unfortunately we must provide the full type of the eval function after |>
 
 
   /**
@@ -55,33 +69,26 @@ ${dataTableExample(awesomeDatatable3)}
    * [info]   12             | 34                | 12.34
    * [info]   -3             | 141               | -3.141
    */
-  def awesomeDatatable1 = {
+  def example1 = {
     // Note: Importing the default of how to make a string out of columns
-    import ColumnToString.Implicits.Default
+    import ColumnToStringByType.Implicits.Default
     "Decimal Digits" || "Fractional Digits" || "Double" |
-                 "0" !! "0"                 !!   0D     |
-                "12" !! "34"                !!  12.34D  |
-                "-3" !! "141"               !!  -3.141D |> {
-      (decimal: String, fractional: String, fpn: Double) =>
-        (for {
-          d <- Try(decimal.toInt).toOption
-          f <- Try(fractional.toInt).toOption
-          if f >= 0D
-        } yield {
-          d + (d.signum * f / math.pow(10, fractional.length))
-        }) must beSome(fpn)
+      "0" !! "0"                 !!   0D     |
+      "12" !! "34"                !!  12.34D  |
+      "-3" !! "141"               !!  -3.141D |> {
+      evaluate
     }
   }
 
 
-  def awesomeDatatable2 = {
+  def example2 = {
     /**
      * [info] + Decimal Digits    | Fractional Digits | Double
      * [info]                   0 |                 0 |  0,00000
      * [info]                  12 |                34 | 12,34000
      * [info]                  -3 |               141 | -3,14100
      */
-    implicit object ColumnToStr extends ColumnToString {
+    implicit object ColumnToStr extends ColumnToStringByType {
       // PER-TYPE-description of how to make a string out of a column
       // Note: You can leave out any of the following defs, because a default is provided which will use toString
       implicit def caseString = at[String](s => f"$s%17s")
@@ -89,29 +96,22 @@ ${dataTableExample(awesomeDatatable3)}
     }
 
     "Decimal Digits" || "Fractional Digits" || "Double" |
-                 "0" !! "0"                 !!   0D     |
-                "12" !! "34"                !!  12.34D  |
-                "-3" !! "141"               !!  -3.141D |> {
-      (decimal: String, fractional: String, fpn: Double) =>
-        (for {
-          d <- Try(decimal.toInt).toOption
-          f <- Try(fractional.toInt).toOption
-          if f >= 0D
-        } yield {
-          d + (d.signum * f / math.pow(10, fractional.length))
-        }) must beSome(fpn)
+      "0" !! "0"                 !!   0D     |
+      "12" !! "34"                !!  12.34D  |
+      "-3" !! "141"               !!  -3.141D |> {
+      evaluate
     }
   }
 
 
-  def awesomeDatatable3 = {
+  def example3 = {
     /**
      * [info] + Decimal Digits | Fractional Digits | Double
      * [info]                0 | 0                 |  0,00000
      * [info]               12 | 34                | 12,34000
      * [info]               -3 | 141               | -3,14100
      */
-    implicit object ColumnToStr extends ColumnToStringIndexed {
+    implicit object ColumnToStr extends ColumnToStringByIndex {
       import shapeless.tag.@@
       import shapeless.nat._
       // PER-COLUMN-description of how to make a string out of a column
@@ -122,20 +122,11 @@ ${dataTableExample(awesomeDatatable3)}
     }
 
     "Decimal Digits" || "Fractional Digits" || "Double" |
-                 "0" !! "0"                 !!   0D     |
-                "12" !! "34"                !!  12.34D  |
-                "-3" !! "141"               !!  -3.141D |> {
-      (decimal: String, fractional: String, fpn: Double) =>
-        (for {
-          d <- Try(decimal.toInt).toOption
-          f <- Try(fractional.toInt).toOption
-          if f >= 0D
-        } yield {
-          d + (d.signum * f / math.pow(10, fractional.length))
-        }) must beSome(fpn)
+      "0" !! "0"                 !!   0D     |
+      "12" !! "34"                !!  12.34D  |
+      "-3" !! "141"               !!  -3.141D |> {
+      evaluate
     }
   }
 
-
 }
-
