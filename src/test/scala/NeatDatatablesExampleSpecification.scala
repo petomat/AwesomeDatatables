@@ -73,9 +73,9 @@ ${dataTableExample(example3)}
     // Note: Importing the default of how to make a string out of columns
     import ColumnToStringByType.Implicits.Default
     "Decimal Digits" || "Fractional Digits" || "Double" |
-      "0" !! "0"                 !!   0D     |
-      "12" !! "34"                !!  12.34D  |
-      "-3" !! "141"               !!  -3.141D |> {
+                 "0" !! "0"                 !!   0D     |
+                "12" !! "34"                !!  12.34D  |
+                "-3" !! "141"               !!  -3.141D |> {
       evaluate
     }
   }
@@ -96,9 +96,9 @@ ${dataTableExample(example3)}
     }
 
     "Decimal Digits" || "Fractional Digits" || "Double" |
-      "0" !! "0"                 !!   0D     |
-      "12" !! "34"                !!  12.34D  |
-      "-3" !! "141"               !!  -3.141D |> {
+                 "0" !! "0"                 !!   0D     |
+                "12" !! "34"                !!  12.34D  |
+                "-3" !! "141"               !!  -3.141D |> {
       evaluate
     }
   }
@@ -122,9 +122,9 @@ ${dataTableExample(example3)}
     }
 
     "Decimal Digits" || "Fractional Digits" || "Double" |
-      "0" !! "0"                 !!   0D     |
-      "12" !! "34"                !!  12.34D  |
-      "-3" !! "141"               !!  -3.141D |> {
+                 "0" !! "0"                 !!   0D     |
+                "12" !! "34"                !!  12.34D  |
+                "-3" !! "141"               !!  -3.141D |> {
       evaluate
     }
   }
