@@ -196,18 +196,21 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
    * to @jedws for the NamedThreadFactory
    * to @alexey_r for the Parser matchers
    */
+  
   // scalastyle:on
 
   /**
-   * THE FOLLOWING CODE HAS BEEN COPIED FROM [org.specs2.matcher.DataTables.Table] because it couldn't be directly used.
-   * Method collect was changed in that titles: Seq[String] are passed from the outside.
+   * THE FOLLOWING CODE ESSENTIALLY HAS BEEN COPIED FROM [org.specs2.matcher.DataTables.Table] because it couldn't
+   * be directly used. Method collect was changed in that titles: Seq[String] are passed from the outside. Moreover
+   * some access modifier were changed and List was replaced by Seq.
    */
+
+  import ResultLogicalCombinators._
   object Table {
     /** this method can be overridden to throw exceptions when checking the result */
     def checkResultFailure(r: =>Result): Result = r
     /**
      * Collect the results of each row
-     *
      * @param results list of (row description, row execution result)
      * @return an aggregated Result from a list of results
      */
@@ -222,7 +225,6 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
     }
     /** @return the logical and combination of all the results */
     private def allSuccess[R : AsResult](results: Seq[(Seq[String], R)]): Result = {
-      import ResultLogicalCombinators._
       results.foldLeft(Success("", results.size): Result)((res, cur) => res and AsResult(cur._2))
     }
     /** @return the status of the row + the values + the failure message if any */

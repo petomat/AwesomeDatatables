@@ -1,5 +1,6 @@
 import scala.util.Try
 import org.specs2.Specification
+import org.specs2.matcher.DataTable
 
 /*
  * Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
@@ -42,12 +43,14 @@ class NeatDatatablesExampleSpecification extends Specification with NeatDatatabl
 
   def is = s2"""
 Neat Datatables
-  Example 1
-${dataTableExample(example1)}
-  Example 2
-${dataTableExample(example2)}
-  Example 3
-${dataTableExample(example3)}
+  Example 1 $p
+$example1
+$p
+  Example 2 $p
+$example2
+$p
+  Example 3 $p
+$example3
 """
 
   val evaluate = {
@@ -62,12 +65,11 @@ ${dataTableExample(example3)}
   }
 
 
-
   /**
-   * [info] + Decimal Digits | Fractional Digits | Double
-   * [info]   0              | 0                 | 0.0
-   * [info]   12             | 34                | 12.34
-   * [info]   -3             | 141               | -3.141
+   * [info]   | Decimal Digits | Fractional Digits | Double |
+   * [info] + | 0              | 0                 | 0.0    |
+   * [info] + | 12             | 34                | 12.34  |
+   * [info] + | -3             | 141               | -3.141 |
    */
   def example1 = {
     // Note: Importing the default of how to make a string out of columns
@@ -81,13 +83,13 @@ ${dataTableExample(example3)}
   }
 
 
+  /**
+   * [info]   | Decimal Digits    | Fractional Digits | Double   |
+   * [info] + |                 0 |                 0 |  0,00000 |
+   * [info] + |                12 |                34 | 12,34000 |
+   * [info] + |                -3 |               141 | -3,14100 |
+   */
   def example2 = {
-    /**
-     * [info] + Decimal Digits    | Fractional Digits | Double
-     * [info]                   0 |                 0 |  0,00000
-     * [info]                  12 |                34 | 12,34000
-     * [info]                  -3 |               141 | -3,14100
-     */
     implicit object ColumnToStr extends ColumnToStringByType {
       // PER-TYPE-description of how to make a string out of a column
       // Note: You can leave out any of the following defs, because a default is provided which will use toString
@@ -104,13 +106,13 @@ ${dataTableExample(example3)}
   }
 
 
+  /**
+   * [info]   | Decimal Digits | Fractional Digits | Double   |
+   * [info] + |              0 | 0                 |  0,00000 |
+   * [info] + |             12 | 34                | 12,34000 |
+   * [info] + |             -3 | 141               | -3,14100 |
+   */
   def example3 = {
-    /**
-     * [info] + Decimal Digits | Fractional Digits | Double
-     * [info]                0 | 0                 |  0,00000
-     * [info]               12 | 34                | 12,34000
-     * [info]               -3 | 141               | -3,14100
-     */
     implicit object ColumnToStr extends ColumnToStringByIndex {
       import shapeless.tag.@@
       import shapeless.nat._
