@@ -1,6 +1,5 @@
 import scala.util.Try
 import org.specs2.Specification
-import org.specs2.matcher.DataTable
 
 /*
  * Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
@@ -52,6 +51,7 @@ $p
   Example 3 $p
 $example3
 """
+
 
   val evaluate = {
     (decimal: String, fractional: String, fpn: Double) =>
@@ -126,7 +126,7 @@ $example3
     "Decimal Digits" || "Fractional Digits" || "Double" |
                  "0" !! "0"                 !!   0D     |
                 "12" !! "34"                !!  12.34D  |
-                "-3" !! "141"               !!  -3.141D |> {
+                "-3" !! "141"               !!  -3.141D | {
       evaluate
     }
   }

@@ -8,6 +8,7 @@ import shapeless._
 import shapeless.nat._
 import shapeless.ops.hlist._
 import shapeless.ops.function.FnToProduct
+import shapeless.ops.sized.ToHList
 import shapeless.tag.@@
 
 
@@ -125,41 +126,50 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
   implicit def toHeading(s: String): Heading[_1] = Heading(Sized[Vector](s))
   case class Heading[N <: Nat](columns: Sized[Vector[String], N]) {
     def ||(s: String): Heading[Succ[N]] = Heading(columns :+ s)
-    def | [R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R] = Table(this, Vector(row))
-    def |>[R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R] = Table(this, Vector(row))
+    def |>[R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R, _1] = {
+      Table(this, Sized[Vector](row.columns))
+    }
+    def | [R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R, _1] = |>(row)
   }
 
   /** Type class witnessing the evaluation function passed to |> at the end of a table fits the row type */
   @implicitNotFound("Domain of provided function of type ${F} does not conform to table row type ${R}")
-  trait ProperTestFunction[R <: HList, F] {
-    type Out
+  trait ProperTestFunction[F, R <: HList, Out] {
     def fnTnProd: FnToProduct.Aux[F, R => Out]
-    def asResult: AsResult[Out]
   }
   object ProperTestFunction {
-    implicit def default[R <: HList, F, Out0](
-      implicit fnToProd0: FnToProduct.Aux[F, R => Out0],
-      asResult0: AsResult[Out0]
-    ): ProperTestFunction[R, F] = new ProperTestFunction[R, F] {
+    implicit def default[R <: HList, F, Out0](implicit
+      fnToProd0: FnToProduct.Aux[F, R => Out0]
+    ): ProperTestFunction[F, R, Out0] = new ProperTestFunction[F, R, Out0] {
       type Out = Out0
-      val asResult = asResult0
       val fnTnProd = fnToProd0
     }
   }
 
   /** Table holding the heading and rows */
-  case class Table[R <: HList](heading: Heading[_ <: Nat], rows: Vector[Row[R]]) {
+  case class Table[R <: HList, N <: Nat](heading: Heading[_ <: Nat], rows: Sized[Vector[R], N]) {
     def titles: Seq[String] = heading.columns.to[Vector]
-    def |(row: Row[R]): Table[R] = Table(heading, rows :+ row)
-    def | [F](f: F)(implicit ptf: ProperTestFunction[R, F], rowToString: RowToString[R]): DecoratedResult[DataTable] = {
-      val prodFct: R => ptf.Out = ptf.fnTnProd(f)
-      Table.collect(titles, rows map { case Row(cols) => rowToString(cols) -> prodFct(cols) })(ptf.asResult)
+    def |[R0 <: HList, RHL <: HList, P <: HList, U <: HList, Lub <: HList](row: Row[R0])(implicit
+      toHlist: ToHList.Aux[Vector[R], N, RHL],
+      prepend: Prepend.Aux[RHL, R0 :: HNil, P],
+      toSized: ToSized.Aux[P, Vector, Lub, Succ[N]]
+    ): Table[Lub, Succ[N]] = {
+      Table(heading, toSized(prepend(toHlist(rows), row.columns :: HNil)))
     }
-    def |>[F](f: F)(implicit ptf: ProperTestFunction[R, F], rowToString: RowToString[R]): DecoratedResult[DataTable] = {
-      |(f)
+    def |>[F, Res](f: F)(implicit
+      properTestFunction: ProperTestFunction[F, R, Res],
+      asResult: AsResult[Res],
+      rowToString: RowToString[R]
+    ): DecoratedResult[DataTable] = {
+      val prodFct: R => Res = properTestFunction.fnTnProd(f)
+      Table.collect(titles, rows.to[Vector] map { case cols => rowToString(cols) -> prodFct(cols) })(asResult)
     }
+    def |[F, Res](f: F)(implicit
+      properTestFunction: ProperTestFunction[F, R, Res],
+      asResult: AsResult[Res],
+      rowToString: RowToString[R]
+    ): DecoratedResult[DataTable] = |>(f)
   }
-
 
 
   // scalastyle:off
@@ -196,7 +206,7 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
    * to @jedws for the NamedThreadFactory
    * to @alexey_r for the Parser matchers
    */
-  
+
   // scalastyle:on
 
   /**
