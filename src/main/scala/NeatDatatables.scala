@@ -126,10 +126,10 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
   implicit def toHeading(s: String): Heading[_1] = Heading(Sized[Vector](s))
   case class Heading[N <: Nat](columns: Sized[Vector[String], N]) {
     def ||(s: String): Heading[Succ[N]] = Heading(columns :+ s)
-    def |>[R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R, _1] = {
+    def |>[R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R, N, _1] = {
       Table(this, Sized[Vector](row.columns))
     }
-    def | [R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R, _1] = |>(row)
+    def | [R <: HList](row: Row[R])(implicit l: ProperRowLength[R, N]): Table[R, N, _1] = |>(row)
   }
 
   /** Type class witnessing the evaluation function passed to |> at the end of a table fits the row type */
@@ -147,13 +147,14 @@ Import ColumnToStringByType.Implicits.Default for a simple default.
   }
 
   /** Table holding the heading and rows */
-  case class Table[R <: HList, N <: Nat](heading: Heading[_ <: Nat], rows: Sized[Vector[R], N]) {
+  case class Table[R <: HList, NC <: Nat, NR <: Nat](heading: Heading[NC], rows: Sized[Vector[R], NR]) {
     def titles: Seq[String] = heading.columns.to[Vector]
-    def |[R0 <: HList, RHL <: HList, P <: HList, U <: HList, Lub <: HList](row: Row[R0])(implicit
-      toHlist: ToHList.Aux[Vector[R], N, RHL],
+    def |[R0 <: HList, RHL <: HList, P <: HList, Lub <: HList](row: Row[R0])(implicit
+      properRowLength: ProperRowLength[R0, NC],
+      toHlist: ToHList.Aux[Vector[R], NR, RHL],
       prepend: Prepend.Aux[RHL, R0 :: HNil, P],
-      toSized: ToSized.Aux[P, Vector, Lub, Succ[N]]
-    ): Table[Lub, Succ[N]] = {
+      toSized: ToSized.Aux[P, Vector, Lub, Succ[NR]]
+    ): Table[Lub, NC, Succ[NR]] = {
       Table(heading, toSized(prepend(toHlist(rows), row.columns :: HNil)))
     }
     def |>[F, Res](f: F)(implicit

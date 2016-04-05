@@ -50,6 +50,9 @@ $example2
 $p
   Example 3 $p
 $example3
+$p
+  Example 4 $p
+$example4
 """
 
 
@@ -129,6 +132,28 @@ $example3
                 "-3" !! "141"               !!  -3.141D | {
       evaluate
     }
+  }
+
+
+  def example4 = {
+    // Inferring least upper bound Fruit works, but note: shapeless.Lub (which is used under the hood) will not unify
+    // Double and Int to Double for example. see: https://gitter.im/milessabin/shapeless?at=57035c0376b6f9de194e29fb
+
+    // Note: extending Product and Serilizable see:
+    // http://stackoverflow.com/questions/36378223/spray-json-failing-for-seq-of-eithers/36378405#36378405
+    sealed trait Fruit extends Product with Serializable
+    case object Apple  extends Fruit
+    case object Banana extends Fruit
+
+    // Note: Importing the default of how to make a string out of columns
+    import ColumnToStringByType.Implicits.Default
+
+    "Fruit" || "Price" |
+    Apple   !! 1.5D    |
+    Banana  !! 1.1D    |> {
+      (f: Fruit, d: Double) => ok
+    }
+
   }
 
 }
